@@ -14,7 +14,7 @@ There are three projects in the solution:
 	a series of calls to the ConwayWebAPI running on a separate server.
 
 To run:
- - use the Visual Studio 2019 Preview (I'm using preview 6, so the "About" box says "Version 16.6.0 Preview 6.0")
+ - use the Visual Studio 2019 16.6 or newer
  - build the solution
  - run the BlazorServerApp and ConwayWebAPI projects at the same time using the IIS Express debug configuration.
  - try each of the nav links on the left of the home page. One is the version that runs in the server with the naive 
