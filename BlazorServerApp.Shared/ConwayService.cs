@@ -5,7 +5,6 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-
 namespace BlazorServerApp.Shared
 {
     /// <summary>
@@ -17,7 +16,7 @@ namespace BlazorServerApp.Shared
 
         public ConwayService(HttpClient client)
         {
-            _httpClient = client;
+            _httpClient = client ?? throw new ArgumentNullException(nameof(client));
         }
 
         /// <summary>
@@ -29,15 +28,14 @@ namespace BlazorServerApp.Shared
         /// </returns>
         public async Task<LifeBoardInt> GetPatternAsync(string pattern)
         {
-            var response = await _httpClient.GetAsync(new Uri($"conwaylife/{pattern}", UriKind.Relative)).ConfigureAwait(false);
+            ArgumentNullException.ThrowIfNull(pattern);
 
+            var response = await _httpClient.GetAsync(new Uri($"conwaylife/{pattern}", UriKind.Relative)).ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
 
-            using (var responseStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
-            {
-                return await JsonSerializer.DeserializeAsync
-                    <LifeBoardInt>(responseStream);
-            }
+            using var responseStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+            var result = await JsonSerializer.DeserializeAsync<LifeBoardInt>(responseStream).ConfigureAwait(false);
+            return result ?? throw new InvalidOperationException("Failed to deserialize response");
         }
 
         /// <summary>
@@ -47,30 +45,22 @@ namespace BlazorServerApp.Shared
         /// <returns>the next generation pattern after applying Life rules</returns>
         public async Task<LifeBoardInt> GetNextGeneration(LifeBoardInt cells)
         {
-            using (MemoryStream ms = new MemoryStream())
-            {
+            ArgumentNullException.ThrowIfNull(cells);
 
-                await JsonSerializer.SerializeAsync<LifeBoardInt>(ms, cells).ConfigureAwait(false);
-                ms.Position = 0;
-                using (StreamReader sr = new StreamReader(ms))
-                {
-                    var str = sr.ReadToEnd();
+            using var ms = new MemoryStream();
+            await JsonSerializer.SerializeAsync(ms, cells).ConfigureAwait(false);
+            ms.Position = 0;
+            
+            using var sr = new StreamReader(ms);
+            var str = sr.ReadToEnd();
 
-                    using (StringContent body = new StringContent(str, Encoding.UTF8, "application/json"))
-                    {
-                        var response = await _httpClient.PostAsync(new Uri("conwaylife", UriKind.Relative), body).ConfigureAwait(false);
+            using var body = new StringContent(str, Encoding.UTF8, "application/json");
+            var response = await _httpClient.PostAsync(new Uri("conwaylife", UriKind.Relative), body).ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
 
-                        response.EnsureSuccessStatusCode();
-
-                        using (var responseStream
-                                = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
-                        {
-                            return await JsonSerializer.DeserializeAsync
-                                <LifeBoardInt>(responseStream).ConfigureAwait(false);
-                        }
-                    }
-                }
-            }
+            using var responseStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+            var result = await JsonSerializer.DeserializeAsync<LifeBoardInt>(responseStream).ConfigureAwait(false);
+            return result ?? throw new InvalidOperationException("Failed to deserialize response");
         }
     }
 }

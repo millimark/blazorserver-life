@@ -25,7 +25,7 @@ namespace ConwayWebAPI.Controllers
         /// <param name="logger">The logger<see cref="ILogger{ConwayLifeController}"/>.</param>
         public ConwayLifeController(ILogger<ConwayLifeController> logger)
         {
-            _logger = logger;
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
 
@@ -40,22 +40,22 @@ namespace ConwayWebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public IActionResult Get(string pattern)
         {
+            ArgumentNullException.ThrowIfNull(pattern);
+
             var rowList = LifePatterns.GetPattern(pattern);
-            if (rowList == null)
+            if (rowList is null)
             {
                 return NotFound();
             }
-            else
+
+            try
             {
-                try
-                {
-                    var matrix = LifeBoardInt.FromPattern(rowList);
-                    return Ok(matrix);
-                }
-                catch
-                {
-                    return BadRequest();
-                }
+                var matrix = LifeBoardInt.FromPattern(rowList);
+                return Ok(matrix);
+            }
+            catch
+            {
+                return BadRequest();
             }
         }
 
@@ -71,6 +71,8 @@ namespace ConwayWebAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public IActionResult Post([FromBody] LifeBoardInt cells)
         {
+            ArgumentNullException.ThrowIfNull(cells);
+
             try
             {
                 var matrix = (LifeBoardInt)cells.NextGeneration(cells);

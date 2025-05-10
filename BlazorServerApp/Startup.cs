@@ -11,7 +11,7 @@ namespace BlazorServerApp
     {
         public Startup(IConfiguration configuration)
         {
-            Configuration = configuration;
+            Configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
 
         public IConfiguration Configuration { get; }
@@ -25,7 +25,8 @@ namespace BlazorServerApp
 
             services.AddHttpClient<ConwayService>(c =>
             {
-                c.BaseAddress = new Uri(Configuration["ConwayWebAPI"]);
+                var apiUrl = Configuration["ConwayWebAPI"] ?? throw new InvalidOperationException("ConwayWebAPI configuration is missing");
+                c.BaseAddress = new Uri(apiUrl);
                 c.DefaultRequestHeaders.Add("Accept", "application/json");
             });
         }

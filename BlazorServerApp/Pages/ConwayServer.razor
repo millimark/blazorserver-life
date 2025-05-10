@@ -1,6 +1,7 @@
 ﻿@page "/conwayserver"
 @implements IDisposable
-@using BlazorServerApp.Shared;
+@using BlazorServerApp.Shared
+@using System.ComponentModel.DataAnnotations
 
 <h1>Conway's Game of Life</h1>
 <h2>This implementation is running on the server with no calls to web services.</h2>
@@ -44,9 +45,8 @@
 
 </div>
 <div class="slidecontainer">
-    <input type="range" min="100" max="1000" value="@currentInterval"
-           class="slider" id="myRange" disabled="@running"
-           @onchange="SetInterval">
+    <input type="range" min="100" max="1000" value="@currentInterval" class="slider" id="myRange" disabled="@running"
+        @onchange="SetInterval">
     <span>Interval between generations:</span>
     <span style="font-weight:bold">@currentInterval ms </span>
 </div>
@@ -102,22 +102,22 @@
             }
             else
             {
-                <button class="btn btn-secondary"
-                        @onclick="ToggleRun">
+                <button class="btn btn-secondary" @onclick="ToggleRun">
                     Stop
                 </button>
             }
-            <a href="https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life" target="_blank">Wikipedia entry for Conway's Game of Life</a>
+            <a href="https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life" target="_blank">Wikipedia entry for Conway's
+                Game of Life</a>
         </div>
     </div>
 </div>
 @code {
-    private System.Timers.Timer timer = new System.Timers.Timer();
-    private LifeBoardBool cells;
+    private readonly System.Timers.Timer timer = new();
+    [Required]
+    private LifeBoardBool cells = null!;
     private int currentInterval = 500; // ms
-    private bool running = false;
-    private bool stopRequested = false;
-
+    private bool running;
+    private bool stopRequested;
 
     private void ToggleCell(int i, int j)
     {
@@ -144,36 +144,46 @@
 
     private void SetInterval(ChangeEventArgs e)
     {
+        ArgumentNullException.ThrowIfNull(e.Value);
         var selected = e.Value.ToString();
-        if (Int32.TryParse(selected, out int newValue))
+        if (selected is not null && Int32.TryParse(selected, out int newValue))
         {
             currentInterval = (int)(Math.Round((decimal)newValue / 100, 0) * 100);
         }
     }
 
-
     private void SelectInitial(ChangeEventArgs e)
     {
         if (!running)
         {
+            ArgumentNullException.ThrowIfNull(e.Value);
             var selected = e.Value.ToString();
-            var rowList = LifePatterns.GetPattern(selected);
-            cells = cells.SetInitialCells(rowList.ToArray()) as LifeBoardBool;
+            if (selected is not null)
+            {
+                var rowList = LifePatterns.GetPattern(selected);
+                if (rowList is not null)
+                {
+                    cells = (LifeBoardBool)cells.SetInitialCells(rowList.ToArray());
+                }
+            }
         }
     }
 
-    private async void ComputeGeneration(object source, System.Timers.ElapsedEventArgs e)
+    private async void ComputeGeneration(object? source, System.Timers.ElapsedEventArgs e)
     {
         try
         {
             if (!stopRequested)
             {
-                cells = cells.NextGeneration(cells) as LifeBoardBool;
+                cells = (LifeBoardBool)cells.NextGeneration(cells);
             }
-            await InvokeAsync(() =>
+            if (this is not null)
             {
-                StateHasChanged();
-            });
+                await InvokeAsync(() =>
+                {
+                    StateHasChanged();
+                });
+            }
         }
         finally
         {
@@ -188,7 +198,7 @@
     protected override void OnInitialized()
     {
         cells = new LifeBoardBool();
-        cells = cells.SetInitialCells("00000", "00000", "00000", "00000", "00000") as LifeBoardBool;
+        cells = (LifeBoardBool)cells.SetInitialCells("00000", "00000", "00000", "00000", "00000");
         timer.AutoReset = false;
         timer.Elapsed += ComputeGeneration;
     }
@@ -196,5 +206,6 @@
     public void Dispose()
     {
         timer.Elapsed -= ComputeGeneration;
+        timer.Dispose();
     }
 }
