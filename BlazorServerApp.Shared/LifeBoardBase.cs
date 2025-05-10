@@ -115,7 +115,7 @@ namespace BlazorServerApp.Shared
         protected T ReadProperty<T>(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
             ArgumentNullException.ThrowIfNull(options);
-            
+
             T? result;
 
             if (typeToConvert != typeof(object) &&
@@ -136,7 +136,7 @@ namespace BlazorServerApp.Shared
         {
             ArgumentNullException.ThrowIfNull(writer);
             ArgumentNullException.ThrowIfNull(value);
-            
+
             Type typeToConvert = typeof(T);
 
             writer.WritePropertyName(name);

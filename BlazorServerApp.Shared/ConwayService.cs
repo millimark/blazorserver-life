@@ -50,7 +50,7 @@ namespace BlazorServerApp.Shared
             using var ms = new MemoryStream();
             await JsonSerializer.SerializeAsync(ms, cells).ConfigureAwait(false);
             ms.Position = 0;
-            
+
             using var sr = new StreamReader(ms);
             var str = sr.ReadToEnd();
 

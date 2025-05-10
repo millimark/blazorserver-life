@@ -44,9 +44,8 @@
 
 </div>
 <div class="slidecontainer">
-    <input type="range" min="100" max="1000" value="@currentInterval"
-           class="slider" id="myRange" disabled="@running"
-           @onchange="SetInterval">
+    <input type="range" min="100" max="1000" value="@currentInterval" class="slider" id="myRange" disabled="@running"
+        @onchange="SetInterval">
     <span>Interval between generations:</span>
     <span style="font-weight:bold">@currentInterval ms </span>
 </div>
@@ -100,12 +99,12 @@
             }
             else
             {
-                <button class="btn btn-secondary"
-                        @onclick="ToggleRun">
+                <button class="btn btn-secondary" @onclick="ToggleRun">
                     Stop
                 </button>
             }
-            <a href="https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life" target="_blank">Wikipedia entry for Conway's Game of Life</a>
+            <a href="https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life" target="_blank">Wikipedia entry for Conway's
+                Game of Life</a>
         </div>
     </div>
 </div>
